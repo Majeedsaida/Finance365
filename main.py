@@ -11,6 +11,5 @@ init_db()
 # Register the routes
 app.register_blueprint(app_routes)
 
-if __name__ == "_main_":
-    # Run the app
+if __name__ == "__main__":
     app.run(debug=True)
