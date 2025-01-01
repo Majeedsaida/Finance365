@@ -31,7 +31,7 @@ def expense():
     return jsonify({"message": "Add expense functionality"}), 200
 
 
-@app_routes.route("/report/income-vs-expenses")
+@app_routes.route("/report")
 def report():
     # Placeholder for generating income vs expenses report functionality
     return jsonify({"message": "Income vs Expenses report functionality"}), 200
