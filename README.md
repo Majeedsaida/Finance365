@@ -1,6 +1,12 @@
-Welcome to Finance365 Application Programming Interface
+# Finance365 Application Programming Interface
+## Project Overview
+Finance360 is a comprehensive API designed to help users manage their personal finances in a secure and efficient way. It enables users to seamlessly track their income, categorize their expenses, and monitor their overall financial health. Whether you're budgeting, tracking spending habits, or looking to save more, Finance360 provides an intuitive and easy-to-use platform for managing all aspects of your financial life.
 
-Below contains endpoint tests documentaion for the API consumers
+The system includes core features such as the ability to add, update, view, and delete income and expense records. Users can categorize their expenses into specific types—such as food, rent, entertainment, and more—and generate monthly summaries automatically. This gives users a clear and concise view of their financial situation and helps them stay on top of their spending habits.
+
+![](https://mymagnifi.org/images/pfm.jpg)
+
+## Below contains endpoint tests documentaion for the API consumers
 
 To test the API routes in your browser or with tools like Postman, here are some steps you can follow for each endpoint. Since your browser primarily supports `GET` requests, we’ll focus on testing `GET` routes directly through the browser and demonstrate how you can use Postman or curl for `POST`, `PUT`, and `DELETE` requests.
 
@@ -157,27 +163,22 @@ To test the API routes in your browser or with tools like Postman, here are some
    }
    ```
 
-### 3. **Using Curl for Quick Testing**
-
-If you're using a terminal, you can use `curl` to test non-GET routes:
-
-#### Add Income Example:
-```bash
-curl -X POST http://localhost:5000/income -H "Content-Type: application/json" -d '{"id": 1, "source": "Salary", "amount": 2000, "date": "2025-01-01"}'
-```
-
-#### Delete Income Example:
-```bash
-curl -X DELETE "http://localhost:5000/income?id=1"
-```
-
-#### Add New Category Example:
-```bash
-curl -X POST http://localhost:5000/category -H "Content-Type: application/json" -d '{"name": "Healthcare"}'
-```
 
 ### Summary
 - Use the browser for `GET` routes like `/`, `/income`, `/expense`, `/report`, and `/category`.
-- Use Postman or `curl` for testing `POST`, `PUT`, and `DELETE` routes with the appropriate JSON payloads.
+- Use Postman for testing `POST`, `PUT`, and `DELETE` routes with the appropriate JSON payloads.
   
-Let me know if you need assistance with automating these tests using a testing framework like `unittest`!
+  ## Collaborators
+* Abdul-Majeed Saidatu
+* Nyande Talatu
+
+## Getting Started
+``` bash
+  First , fork this repository and then
+  git clone https://github.com/Majeedsaida/Finance365.git
+  ```
+  ## Tech stack
+  * Python
+  * Flask
+  * SQLite
+  * Flask Routes
