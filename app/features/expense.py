@@ -1,71 +1,74 @@
-from flask import Blueprint, request, jsonify
-from app.utility.database import add_expense, update_expense, get_expense, delete_expense
+import sqlite3
+from flask import jsonify
 
-# Create a Blueprint for the expense routes
-expense_routes = Blueprint("expense_routes", __name__)
-
-# Add Expense Route
-@expense_routes.route("/expense", methods=["POST"])
-def add_expense_route():
-    data = request.get_json()
-    amount = data.get("amount")
-    category = data.get("category")
-    description = data.get("description")
-    date = data.get("date")
-
-    if not all([amount, category, description, date]):
-        return jsonify({"error": "Missing required fields"}), 400
-
-    # Add the expense to the database
-    add_expense(amount, category, description, date)
-    return jsonify({"message": "Expense added successfully!"}), 201
+DB_PATH = "app/features/finance.db"  # Path to your SQLite database
 
 
-# Update Expense Route
-@expense_routes.route("/expense/<int:expense_id>", methods=["PUT"])
-def update_expense_route(expense_id):
-    data = request.get_json()
-    amount = data.get("amount")
-    category = data.get("category")
-    description = data.get("description")
-    date = data.get("date")
+def handle_expense(request):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
 
-    if not all([amount, category, description, date]):
-        return jsonify({"error": "Missing required fields"}), 400
+    try:
+        if request.method == "POST":
+            # Add expense record
+            data = request.json
+            cursor.execute(
+                """
+                INSERT INTO expenses (amount, category, description, date)
+                VALUES (?, ?, ?, ?)
+                """,
+                (data["amount"], data["category"], data["description"], data["date"]),
+            )
+            conn.commit()
+            return jsonify({"message": "Expense added successfully"}), 201
 
-    # Check if the expense exists
-    expense = get_expense(expense_id)
-    if not expense:
-        return jsonify({"error": "Expense not found"}), 404
+        elif request.method == "GET":
+            # View expense records
+            cursor.execute("SELECT * FROM expenses")
+            records = cursor.fetchall()
+            expense_list = [
+                {
+                    "id": row[0],
+                    "amount": row[1],
+                    "category": row[2],
+                    "description": row[3],
+                    "date": row[4],
+                }
+                for row in records
+            ]
+            return jsonify({"expense_records": expense_list}), 200
 
-    # Update the expense record in the database
-    update_expense(expense_id, amount, category, description, date)
-    return jsonify({"message": f"Expense with ID {expense_id} updated successfully!"}), 200
+        elif request.method == "PUT":
+            # Update expense record
+            data = request.json
+            cursor.execute(
+                """
+                UPDATE expenses
+                SET amount = ?, category = ?, description = ?, date = ?
+                WHERE id = ?
+                """,
+                (
+                    data["amount"],
+                    data["category"],
+                    data["description"],
+                    data["date"],
+                    data["id"],
+                ),
+            )
+            conn.commit()
+            return jsonify({"message": "Expense record updated successfully"}), 200
 
+        elif request.method == "DELETE":
+            # Delete expense record
+            record_id = request.args.get("id")
+            if not record_id:
+                return jsonify({"error": "Record ID is required"}), 400
+            cursor.execute("DELETE FROM expenses WHERE id = ?", (record_id,))
+            conn.commit()
+            return jsonify({"message": "Expense record deleted successfully"}), 200
 
-# View Expense Route (All Expenses or Specific Expense by ID)
-@expense_routes.route("/expense", methods=["GET"])
-@expense_routes.route("/expense/<int:expense_id>", methods=["GET"])
-def view_expense_route(expense_id=None):
-    if expense_id:
-        expense = get_expense(expense_id)
-        if expense:
-            return jsonify(dict(expense)), 200
-        else:
-            return jsonify({"error": "Expense not found"}), 404
-    else:
-        expenses = get_expense()
-        return jsonify([dict(expense) for expense in expenses]), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-
-# Delete Expense Route
-@expense_routes.route("/expense/<int:expense_id>", methods=["DELETE"])
-def delete_expense_route(expense_id):
-    # Check if the expense exists
-    expense = get_expense(expense_id)
-    if not expense:
-        return jsonify({"error": "Expense not found"}), 404
-
-    # Delete the expense record from the database
-    delete_expense(expense_id)
-    return jsonify({"message": f"Expense with ID {expense_id} deleted successfully!"}), 200
+    finally:
+        conn.close()
