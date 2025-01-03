@@ -1,183 +1,280 @@
-Welcome to Finance365 Application Programming Interface
+# Finance365 API Testing Documentation
 
-Below contains endpoint tests documentaion for the API consumers
+Welcome to the Finance365 Application Programming Interface (API). This documentation provides the necessary steps to test the API endpoints. The API includes routes for managing income, expenses, categories, and authentication.
 
-To test the API routes in your browser or with tools like Postman, here are some steps you can follow for each endpoint. Since your browser primarily supports `GET` requests, we’ll focus on testing `GET` routes directly through the browser and demonstrate how you can use Postman or curl for `POST`, `PUT`, and `DELETE` requests.
+## 1. **GET Routes - Testing in the Browser**
 
-### 1. **Testing the `GET` Routes in the Browser**
-
-#### Home Route
-- URL: `http://localhost:5000/`
-- Expected Response: 
+### Home Route
+- **URL**: `http://localhost:5000/`
+- **Expected Response**:
 ```json
 {
   "message": "Welcome to Finance365! Your Personal Finance Management System"
 }
 ```
 
-#### View Income Records
-- URL: `http://localhost:5000/income`
-- Expected Response:
+### View Income Records
+- **URL**: `http://localhost:5000/income`
+- **Expected Response**:
 ```json
 {
   "income_records": []
 }
 ```
 
-#### View Expense Records
-- URL: `http://localhost:5000/expense`
-- Expected Response:
+### View Expense Records
+- **URL**: `http://localhost:5000/expense`
+- **Expected Response**:
 ```json
 {
   "expense_records": []
 }
 ```
 
-#### Report Route
-- URL: `http://localhost:5000/report`
-- Expected Response:
+### Report Route
+- **URL**: `http://localhost:5000/report`
+- **Expected Response**:
 ```json
 {
-  "total_income": 0,
-  "total_expenses": 0,
-  "remaining_savings": 0
+    "summary": {
+        "total_income": 5000.0,
+        "total_expenses": 3000.0,
+        "remaining_savings": 2000.0
+    },
+    "details": {
+        "expense_breakdown": [
+            {"category": "Food", "total": 1000.0},
+            {"category": "Rent", "total": 1000.0},
+            {"category": "Transport", "total": 500.0}
+        ],
+        "financial_status": "Your finances are in good shape! You have saved money this period."
+    },
+    "message": "This report provides a detailed overview of your financial health for the month 01."
+}
+
+```
+
+### View Categories
+- **URL**: `http://localhost:5000/category`
+- **Expected Response**:
+```json
+{
+    "expense_categories": [
+        {"category": "transportation", "total_expense": 150.0},
+        {"category": "food", "total_expense": 300.0}
+    ],
+    "categories_expenses": {
+        "transportation": [
+            {
+                "id": 1,
+                "amount": 50.0,
+                "category": "transportation",
+                "description": "Taxi fare",
+                "date": "2024-01-01"
+            },
+            {
+                "id": 2,
+                "amount": 100.0,
+                "category": "transportation",
+                "description": "Bus fare",
+                "date": "2024-01-02"
+            }
+        ],
+        "food": [
+            {
+                "id": 3,
+                "amount": 50.0,
+                "category": "food",
+                "description": "Lunch",
+                "date": "2024-01-03"
+            },
+            {
+                "id": 4,
+                "amount": 250.0,
+                "category": "food",
+                "description": "Dinner",
+                "date": "2024-01-03"
+            }
+        ]
+    },
+    "message": "This is a detailed categorization of your expenses."
 }
 ```
 
-#### View Categories
-- URL: `http://localhost:5000/category`
-- Expected Response:
+## 2. **Non-GET Routes - Testing with Postman or Curl**
+
+### Add Income
+- **Method**: POST
+- **URL**: `http://localhost:5000/income`
+- **Body** (JSON):
 ```json
 {
-  "categories": ["Food", "Rent", "Entertainment", "Utilities", "Others"]
+  "id": 1,
+  "source": "Salary",
+  "amount": 2000,
+  "date": "2025-01-01",
+  "category": "Salary"
+}
+```
+- **Expected Response**:
+```json
+{
+  "message": "Income added successfully",
+  "data": {
+    "id": 1,
+    "source": "Salary",
+    "amount": 2000,
+    "date": "2025-01-01",
+    "category": "Salary"
+  }
 }
 ```
 
-### 2. **Testing Non-GET Routes Using Postman**
+### Update Income
+- **Method**: PUT
+- **URL**: `http://localhost:5000/income`
+- **Body** (JSON):
+```json
+{
+  "id": 1,
+  "source": "Salary",
+  "amount": 2500,
+  "date": "2025-01-01",
+  "category": "Salary"
+}
+```
+- **Expected Response**:
+```json
+{
+  "message": "Income record updated",
+  "data": {
+    "id": 1,
+    "source": "Salary",
+    "amount": 2500,
+    "date": "2025-01-01",
+    "category": "Salary"
+  }
+}
+```
 
-#### Add Income
-1. **Method**: POST  
-2. **URL**: `http://localhost:5000/income`  
-3. **Body** (JSON):
-   ```json
-   {
-       "id": 1,
-       "source": "Salary",
-       "amount": 2000,
-       "date": "2025-01-01"
-   }
-   ```
-4. **Expected Response**:
-   ```json
-   {
-       "message": "Income added successfully",
-       "data": {
-           "id": 1,
-           "source": "Salary",
-           "amount": 2000,
-           "date": "2025-01-01"
-       }
-   }
-   ```
+### Delete Income
+- **Method**: DELETE
+- **URL**: `http://localhost:5000/income?id=1`
+- **Expected Response**:
+```json
+{
+  "message": "Income record deleted"
+}
+```
 
-#### Update Income
-1. **Method**: PUT  
-2. **URL**: `http://localhost:5000/income`  
-3. **Body** (JSON):
-   ```json
-   {
-       "id": 1,
-       "source": "Salary",
-       "amount": 2500,
-       "date": "2025-01-01"
-   }
-   ```
-4. **Expected Response**:
-   ```json
-   {
-       "message": "Income record updated",
-       "data": {
-           "id": 1,
-           "source": "Salary",
-           "amount": 2500,
-           "date": "2025-01-01"
-       }
-   }
-   ```
+### Add Expense
+- **Method**: POST
+- **URL**: `http://localhost:5000/expense`
+- **Body** (JSON):
+```json
+{
+  "id": 1,
+  "category": "Food",
+  "amount": 50,
+  "date": "2025-01-01"
+}
+```
+- **Expected Response**:
+```json
+{
+  "message": "Expense added successfully",
+  "data": {
+    "id": 1,
+    "category": "Food",
+    "amount": 50,
+    "date": "2025-01-01"
+  }
+}
+```
 
-#### Delete Income
-1. **Method**: DELETE  
-2. **URL**: `http://localhost:5000/income?id=1`  
-3. **Expected Response**:
-   ```json
-   {
-       "message": "Income record deleted"
-   }
-   ```
+### Add New Category
+- **Method**: POST
+- **URL**: `http://localhost:5000/category`
+- **Body** (JSON):
+```json
+{
+  "name": "Healthcare"
+}
+```
+- **Expected Response**:
+```json
+{
+  "message": "Category added",
+  "categories": ["Food", "Rent", "Entertainment", "Utilities", "Others", "Healthcare"]
+}
+```
 
-#### Add Expense
-1. **Method**: POST  
-2. **URL**: `http://localhost:5000/expense`  
-3. **Body** (JSON):
-   ```json
-   {
-       "id": 1,
-       "category": "Food",
-       "amount": 50,
-       "date": "2025-01-01"
-   }
-   ```
-4. **Expected Response**:
-   ```json
-   {
-       "message": "Expense added successfully",
-       "data": {
-           "id": 1,
-           "category": "Food",
-           "amount": 50,
-           "date": "2025-01-01"
-       }
-   }
-   ```
+## 3. **Authentication Routes - Register and Login**
 
-#### Add New Category
-1. **Method**: POST  
-2. **URL**: `http://localhost:5000/category`  
-3. **Body** (JSON):
-   ```json
-   {
-       "name": "Healthcare"
-   }
-   ```
-4. **Expected Response**:
-   ```json
-   {
-       "message": "Category added",
-       "categories": ["Food", "Rent", "Entertainment", "Utilities", "Others", "Healthcare"]
-   }
-   ```
+### Register User
+- **Method**: POST
+- **URL**: `http://localhost:5000/register`
+- **Body** (JSON):
+```json
+{
+  "username": "john_doe",
+  "password": "password123"
+}
+```
+- **Expected Response**:
+```json
+{
+  "message": "User registered successfully"
+}
+```
 
-### 3. **Using Curl for Quick Testing**
+### Login User
+- **Method**: POST
+- **URL**: `http://localhost:5000/login`
+- **Body** (JSON):
+```json
+{
+  "username": "john_doe",
+  "password": "password123"
+}
+```
+- **Expected Response**:
+```json
+{
+  "access_token": "your_jwt_token_here"
+}
+```
 
-If you're using a terminal, you can use `curl` to test non-GET routes:
+## 4. **Quick Testing Using Curl**
 
-#### Add Income Example:
+### Add Income Example:
 ```bash
-curl -X POST http://localhost:5000/income -H "Content-Type: application/json" -d '{"id": 1, "source": "Salary", "amount": 2000, "date": "2025-01-01"}'
+curl -X POST http://localhost:5000/income -H "Content-Type: application/json" -d '{"id": 1, "source": "Salary", "amount": 2000, "date": "2025-01-01", "category": "Salary"}'
 ```
 
-#### Delete Income Example:
+### Delete Income Example:
 ```bash
 curl -X DELETE "http://localhost:5000/income?id=1"
 ```
 
-#### Add New Category Example:
+### Add New Category Example:
 ```bash
 curl -X POST http://localhost:5000/category -H "Content-Type: application/json" -d '{"name": "Healthcare"}'
 ```
 
-### Summary
-- Use the browser for `GET` routes like `/`, `/income`, `/expense`, `/report`, and `/category`.
-- Use Postman or `curl` for testing `POST`, `PUT`, and `DELETE` routes with the appropriate JSON payloads.
-  
-Let me know if you need assistance with automating these tests using a testing framework like `unittest`!
+### Register User Example:
+```bash
+curl -X POST http://localhost:5000/register -H "Content-Type: application/json" -d '{"username": "john_doe", "password": "password123"}'
+```
+
+### Login User Example:
+```bash
+curl -X POST http://localhost:5000/login -H "Content-Type: application/json" -d '{"username": "john_doe", "password": "password123"}'
+```
+
+---
+
+### Summary:
+- **GET** requests can be tested directly in the browser for routes like `/`, `/income`, `/expense`, `/report`, and `/category`.
+- **POST**, **PUT**, and **DELETE** requests should be tested using Postman or `curl` with the appropriate JSON payloads.
+- **Authentication** routes (`/register`, `/login`) are available for user management with JWT-based authentication.

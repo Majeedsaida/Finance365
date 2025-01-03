@@ -1,33 +1,48 @@
 import sqlite3
-from flask import jsonify
+from flask import request, jsonify
 
 DB_PATH = "app/features/finance.db"
 
 
-def generate_report():
+def generate_report(request):
+    # Get the month from the POST request
+    month = request.json.get("month")
+
+    if not month:
+        return jsonify({"error": "Month is required."}), 400
+
+    if len(month) != 2 or not month.isdigit():
+        return jsonify({"error": "Invalid month format. Please use 'MM' format."}), 400
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     try:
-        # Fetch total income
-        cursor.execute("SELECT SUM(amount) FROM income")
+        # Fetch total income for the given month
+        cursor.execute(
+            "SELECT SUM(amount) FROM income WHERE strftime('%m', date) = ?", (month,)
+        )
         total_income = cursor.fetchone()[0] or 0
 
-        # Fetch total expenses
-        cursor.execute("SELECT SUM(amount) FROM expenses")
+        # Fetch total expenses for the given month
+        cursor.execute(
+            "SELECT SUM(amount) FROM expenses WHERE strftime('%m', date) = ?", (month,)
+        )
         total_expenses = cursor.fetchone()[0] or 0
 
         # Calculate remaining savings
         remaining_savings = total_income - total_expenses
 
-        # Fetch category-wise breakdown of expenses
+        # Fetch category-wise breakdown of expenses for the given month
         cursor.execute(
             """
             SELECT category, SUM(amount) 
             FROM expenses 
+            WHERE strftime('%m', date) = ?
             GROUP BY category 
             ORDER BY SUM(amount) DESC
-            """
+            """,
+            (month,),
         )
         expense_breakdown = [
             {"category": row[0], "total": row[1]} for row in cursor.fetchall()
@@ -54,7 +69,7 @@ def generate_report():
                 "expense_breakdown": expense_breakdown,
                 "financial_status": financial_status,
             },
-            "message": "This report provides a detailed overview of your current financial health.",
+            "message": f"This report provides a detailed overview of your financial health for the month {month}.",
         }
 
         return jsonify(report), 200

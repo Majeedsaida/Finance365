@@ -10,20 +10,6 @@ def handle_category(request):
 
     try:
         if request.method == "GET":
-            # Group income by category
-            cursor.execute(
-                """
-                SELECT category, SUM(amount) AS total_amount 
-                FROM income 
-                GROUP BY category 
-                ORDER BY total_amount DESC
-                """
-            )
-            income_categories = [
-                {"category": row[0], "total_income": row[1]}
-                for row in cursor.fetchall()
-            ]
-
             # Group expenses by category
             cursor.execute(
                 """
@@ -38,45 +24,37 @@ def handle_category(request):
                 for row in cursor.fetchall()
             ]
 
-            # Combine results into a categorized summary
+            # Now, for each category, fetch all expense records
+            categories_expenses = {}
+            for category in [row["category"] for row in expense_categories]:
+                cursor.execute(
+                    """
+                    SELECT id, amount, category, description, date 
+                    FROM expenses 
+                    WHERE category = ?
+                    """,
+                    (category,),
+                )
+                expenses = [
+                    {
+                        "id": row[0],
+                        "amount": row[1],
+                        "category": row[2],
+                        "description": row[3],
+                        "date": row[4],
+                    }
+                    for row in cursor.fetchall()
+                ]
+                categories_expenses[category] = expenses
+
+            # Combine categorized expenses with summary info
             response = {
-                "income_categories": income_categories,
                 "expense_categories": expense_categories,
-                "message": "This is a detailed categorization of your income and expenses.",
+                "categories_expenses": categories_expenses,
+                "message": "This is a detailed categorization of your expenses.",
             }
 
             return jsonify(response), 200
-
-        elif request.method == "POST":
-            # Add a new record with category
-            data = request.json
-
-            if "type" not in data or data["type"] not in ["income", "expense"]:
-                return (
-                    jsonify({"error": "Invalid type. Must be 'income' or 'expense'."}),
-                    400,
-                )
-
-            if data["type"] == "income":
-                cursor.execute(
-                    "INSERT INTO income (amount, source, category, date) VALUES (?, ?, ?, ?)",
-                    (data["amount"], data["source"], data["category"], data["date"]),
-                )
-            elif data["type"] == "expense":
-                cursor.execute(
-                    "INSERT INTO expenses (amount, category, date) VALUES (?, ?, ?)",
-                    (data["amount"], data["category"], data["date"]),
-                )
-
-            conn.commit()
-            return (
-                jsonify(
-                    {
-                        "message": f"{data['type'].capitalize()} record added successfully"
-                    }
-                ),
-                201,
-            )
 
         else:
             return jsonify({"error": "Method not allowed"}), 405

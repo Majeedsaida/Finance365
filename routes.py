@@ -1,10 +1,17 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+)
 from app.features.income import handle_income
 from app.features.expense import handle_expense
 from app.features.category import handle_category
 from app.features.report import generate_report
 from app.features.summary import generate_summary
 from app.features.visualize import generate_visualization_data
+from app.features.authentication import register_user, login_user
 
 # Create a Blueprint for the routes
 app_routes = Blueprint("app_routes", __name__)
@@ -47,6 +54,12 @@ def home():
                     "/visualize": {
                         "GET": "Generate data for visualizations of income and expenses",
                     },
+                    "/register": {
+                        "POST": "Register a new user with a username and password",
+                    },
+                    "/login": {
+                        "POST": "Authenticate a user and return a JWT access token",
+                    },
                 },
                 "note": "All endpoints require proper request formatting and valid parameters where applicable.",
             }
@@ -55,41 +68,69 @@ def home():
     )
 
 
+# Authentication Routes
+@app_routes.route("/register", methods=["POST"])
+def register():
+    data = request.json
+    return register_user(data)
+
+
+@app_routes.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    return login_user(data)
+
+
 # Income Routes
 @app_routes.route("/income", methods=["POST", "GET", "PUT", "DELETE"])
+@jwt_required()
 def income():
     return handle_income(request)
 
 
 # Expense Routes
 @app_routes.route("/expenses", methods=["POST", "GET", "PUT", "DELETE"])
+@jwt_required()
 def expense():
     return handle_expense(request)
 
 
 # Report Route
 @app_routes.route("/report", methods=["GET"])
+@jwt_required()
 def report():
     return generate_report()
 
 
 # Expense Categorization Route
-@app_routes.route("/category", methods=["GET", "POST"])
+@app_routes.route("/category", methods=["GET"])
+@jwt_required()
 def category():
     return handle_category(request)
 
 
 # Summary Route
 @app_routes.route("/summary", methods=["GET"])
+@jwt_required()
 def summary():
-    month = request.args.get("month")
-    year = request.args.get("year")
-    if not month or not year:
-        return jsonify({"error": "Month and Year are required"}), 400
-    return generate_summary(month, year)
+    return generate_summary(request)
 
 
 # Visualization Route
 @app_routes.route("/visualize", methods=["GET"])
+@jwt_required()
 def visualize():
-    return generate_visualization_data()
+    # Get parameters from query string (month and/or year)
+    month = request.args.get("month")
+    year = request.args.get("year")
+
+    # Validate the provided month or year
+    if not month and not year:
+        return jsonify({"error": "Either month or year must be provided."}), 400
+    if month and len(month) != 2 or not month.isdigit():
+        return jsonify({"error": "Invalid month format. Please use 'MM' format."}), 400
+    if year and len(year) != 4 or not year.isdigit():
+        return jsonify({"error": "Invalid year format. Please use 'YYYY' format."}), 400
+
+    # Call the function to generate data based on month and/or year
+    return generate_visualization_data(month, year)

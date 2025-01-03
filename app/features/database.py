@@ -37,6 +37,17 @@ def init_db():
         """
         )
 
+        # Create user table
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password TEXT NOT NULL
+            )
+        """
+        )
+
         # Commit the changes
         conn.commit()
         print("Database initialized successfully.")
