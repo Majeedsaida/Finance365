@@ -12,7 +12,9 @@ class Income(Base):
     amount = Column(Float, nullable=False)
     source = Column(String(100), nullable=False)
     category = Column(String(50), nullable=False)
-    date = Column(Date, default=datetime.date.today, nullable=False)  # Changed to Date
+    date = Column(
+        String, default=datetime.datetime.now().strftime("%Y-%m-%d"), nullable=False
+    )
 
     def __repr__(self):
         return f"<Income(id={self.id}, amount={self.amount}, source='{self.source}', category='{self.category}', date='{self.date}')>"
@@ -25,7 +27,9 @@ class Expense(Base):
     amount = Column(Float, nullable=False)
     category = Column(String(50), nullable=False)
     description = Column(Text, nullable=True)
-    date = Column(Date, default=datetime.date.today, nullable=False)  # Changed to Date
+    date = Column(
+        String, default=datetime.datetime.now().strftime("%Y-%m-%d"), nullable=False
+    )
 
     def __repr__(self):
         return f"<Expense(id={self.id}, amount={self.amount}, category='{self.category}', description='{self.description}', date='{self.date}')>"

@@ -10,7 +10,6 @@ from expense import handle_expense
 from category import handle_category
 from report import generate_report
 from summary import generate_summary
-from visualize import generate_visualization_data
 from authentication import register_user, login_user
 
 # Create a Blueprint for the routes
@@ -118,23 +117,3 @@ def category():
 @jwt_required()
 def summary():
     return generate_summary()
-
-
-# Visualization Route
-@app_routes.route("/visualize", methods=["GET"])
-@jwt_required()
-def visualize():
-    # Get parameters from query string (month and/or year)
-    month = request.args.get("month")
-    year = request.args.get("year")
-
-    # Validate the provided month or year
-    if not month and not year:
-        return jsonify({"error": "Either month or year must be provided."}), 400
-    if month and len(month) != 2 or not month.isdigit():
-        return jsonify({"error": "Invalid month format. Please use 'MM' format."}), 400
-    if year and len(year) != 4 or not year.isdigit():
-        return jsonify({"error": "Invalid year format. Please use 'YYYY' format."}), 400
-
-    # Call the function to generate data based on month and/or year
-    return generate_visualization_data(month, year)
